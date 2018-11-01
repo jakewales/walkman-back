@@ -75,12 +75,41 @@ export default class AudioController {
         const collection: PlayList = new PlayList();
         const collectionRequest = <collectionInfo>ctx.request.body;
         
-        const audio = await audioRepository.findOne({id: collectionRequest.audioId});
-        const user = await userRepository.findOne({id: collectionRequest.userId});
-
-        collection.audioId = audio.id;
-        collection.userId = user.id;
-
+        if (await collectionRepository.findOne({userId: collectionRequest.userId, audioId: collectionRequest.audioId})) {
+            ctx.status = 401;
+            ctx.body = <respCtx> {
+                statusCode: -1,
+                data: {},
+                errorMessage: ['不要重复收藏']
+            };
+            return;
+        }
+        try {
+            const audio = await audioRepository.findOne({id: collectionRequest.audioId});
+            collection.audioId = audio.id;
+        } catch (e) {
+            ctx.status = 401;
+            ctx.body = <respCtx> {
+                statusCode: -1,
+                data: {},
+                errorMessage: ['收藏歌曲不存在']
+            };
+            return;
+        }
+        
+        try {
+            const user = await userRepository.findOne({id: collectionRequest.userId});
+            collection.userId = user.id;
+        } catch (e) {
+            ctx.status = 401;
+            ctx.body = <respCtx> {
+                statusCode: -1,
+                data: {},
+                errorMessage: ['收藏用户不存在']
+            };
+            return;
+        }
+        
         const errors: ValidationError[] = await validate(collection);
 
         if (errors && errors.length) {
