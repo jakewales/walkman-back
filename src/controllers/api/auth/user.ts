@@ -8,7 +8,6 @@ import * as jsonwebtoke from 'jsonwebtoken';
 import { APIconfig } from '../../../config';
 
 import respCtx from '../../../model/api/response';
-import tokenVail from '../tokenVali';
 
 import { loginRequest, updateProfile} from '../../../model/api/auth';
 
@@ -81,7 +80,6 @@ export default class UserController {
     }
 
     public static async updateUser(ctx: Context) {
-        tokenVail(ctx);
         const userRepository: Repository<Personnel> = getManager().getRepository(Personnel);
         const requestInfo = <updateProfile>ctx.request.body;
         let userProfile = await userRepository.find({
@@ -119,6 +117,5 @@ export default class UserController {
     }
 
     public static async disableUser(ctx: Context) {
-        tokenVail(ctx);
     }
 };

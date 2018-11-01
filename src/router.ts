@@ -28,3 +28,5 @@ router.get('/audioList', AudioController.getAudioList);
 router.get('/audioInfo/:id', AudioController.getAudioInfo);
 
 router.get('/audio/:id', AudioController.getAudio);
+
+router.get('/lyrics/:id', AudioController.getLyrics)

@@ -3,12 +3,13 @@ import { Repository, getManager } from 'typeorm';
 import { ValidationError, validate } from 'class-validator';
 import { fs } from 'mz';
 import * as getRawBody from 'raw-body';
+import * as audioMetadata from 'audio-metadata';
 
 import respCtx from '../../../model/api/response';
-import tokenVail from '../tokenVali';
 
 import { PlayList } from '../../../db/entity/PlayList';
 import { Audio } from '../../../db/entity/Audio';
+import { Personnel } from '../../../db/entity/User';
 
 interface audioInfo {
     name: string;
@@ -16,6 +17,7 @@ interface audioInfo {
     singer?: string;
     timeLength: number;
     album?: string;
+    url: string;
 }
 
 interface collectionInfo {
@@ -25,7 +27,6 @@ interface collectionInfo {
 
 export default class AudioController {
     public static async createAudio(ctx: Context) {
-        tokenVail(ctx);
         const audioRepository: Repository<Audio> = getManager().getRepository(Audio);
         const audio: Audio = new Audio();
         const requestInfo = <audioInfo>ctx.request.body;
@@ -33,8 +34,9 @@ export default class AudioController {
         audio.name = requestInfo.name;
         audio.desc = requestInfo.desc ? requestInfo.desc : '';
         audio.singer = requestInfo.singer ? requestInfo.singer : '';
-        audio.timeLength = requestInfo.timeLength;
+        audio.timeLength = requestInfo.timeLength ? requestInfo.timeLength : null;
         audio.album = requestInfo.album ? requestInfo.album : '';
+        audio.url = requestInfo.url;
 
         const errors: ValidationError[] = await validate(audio);
 
@@ -68,14 +70,47 @@ export default class AudioController {
     }
 
     public static async collectionAudio(ctx: Context) {
-        tokenVail(ctx);
-        const audioRepository: Repository<PlayList> = getManager().getRepository(PlayList);
+        const audioRepository: Repository<Audio> = getManager().getRepository(Audio);
+        const userRepository: Repository<Personnel> = getManager().getRepository(Personnel);
+        const collectionRepository: Repository<PlayList> = getManager().getRepository(PlayList);
         const collection: PlayList = new PlayList();
         const collectionRequest = <collectionInfo>ctx.request.body;
         
-        collection.userId = collectionRequest.userId;
-        collection.audioId = collectionRequest.audioId;
-
+        if (await collectionRepository.findOne({userId: collectionRequest.userId, audioId: collectionRequest.audioId})) {
+            ctx.status = 401;
+            ctx.body = <respCtx> {
+                statusCode: -1,
+                data: {},
+                errorMessage: ['不要重复收藏']
+            };
+            return;
+        }
+        try {
+            const audio = await audioRepository.findOne({id: collectionRequest.audioId});
+            collection.audioId = audio.id;
+        } catch (e) {
+            ctx.status = 401;
+            ctx.body = <respCtx> {
+                statusCode: -1,
+                data: {},
+                errorMessage: ['收藏歌曲不存在']
+            };
+            return;
+        }
+        
+        try {
+            const user = await userRepository.findOne({id: collectionRequest.userId});
+            collection.userId = user.id;
+        } catch (e) {
+            ctx.status = 401;
+            ctx.body = <respCtx> {
+                statusCode: -1,
+                data: {},
+                errorMessage: ['收藏用户不存在']
+            };
+            return;
+        }
+        
         const errors: ValidationError[] = await validate(collection);
 
         if (errors && errors.length) {
@@ -85,37 +120,21 @@ export default class AudioController {
                 data: {},
                 errorMessage: JSON.parse(JSON.stringify(errors))
             };
-        }
-
-        const collected = await audioRepository.find({
-            where: {
-                userId: collectionRequest.userId,
-                audioId: collectionRequest.audioId
-            },
-        });
-
-        if (collected && collected.length) {
-            ctx.status = 200;
-            ctx.body = <respCtx>{
-                statusCode: -3,
-                data: {},
-                errorMessage: ['歌曲已经在收藏列表中']
-            };
         } else {
             try {
-                const feedback = await audioRepository.save(collection);
-                ctx.status = 201;
-                ctx.body = <respCtx>{
+                await collectionRepository.save(collection);
+                ctx.status = 200;
+                ctx.body = <respCtx> {
                     statusCode: 1,
-                    data: feedback,
+                    data: {},
                     message: ['收藏成功']
                 }
             } catch (e) {
-                ctx.status = 400;
+                ctx.status = 500;
                 ctx.body = <respCtx>{
-                    statusCode: -2,
+                    statusCode: -1,
                     data: {},
-                    errorMessage: ['写入数据失败']
+                    errorMessage: ['收藏失败']
                 }
             }
         }
@@ -130,12 +149,28 @@ export default class AudioController {
     }
 
     public static async getAudio(ctx: Context) {
-        tokenVail(ctx);
-        const fileName: string = 'FiveHundredMiles.mp3';
-        const fileStream = fs.createReadStream(`${process.cwd()}/media/${fileName}`);
-        let fileBuffer: Buffer = await getRawBody(fileStream);
-        ctx.set('Content-type', 'arraybuffer');
-        ctx.body = fileBuffer;
+        const audioRepository: Repository<Audio> = getManager().getRepository(Audio);
+        const audioId = ctx.params.id;
+        try {
+            const audio: Audio = await audioRepository.findOne({id: audioId});
+            const fileName: string = audio.url;
+            const fileStream = fs.createReadStream(`${process.cwd()}/media/${fileName}`);
+            let fileBuffer: Buffer = await getRawBody(fileStream);
+            ctx.set('Content-type', 'arraybuffer');
+            ctx.body = fileBuffer;
+        } catch(e) {
+            ctx.status = 404;
+            ctx.body = <respCtx>{
+                statusCode: -1,
+                data: {},
+                errorMessage: ['未找到对应音乐']
+            }
+        }
+    }
+
+
+    public static async getLyrics(ctx: Context) {
+        
     }
 
     public static toArrayBuffer(buffer: Buffer) {
