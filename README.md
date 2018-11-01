@@ -18,13 +18,16 @@
 
 ### Orm
 [find](https://github.com/typeorm/typeorm/blob/master/docs/find-options.md)
+[learn](https://cnodejs.org/topic/5ac073b852d7d3a8698a49f4)
 
 
 ### node 
 
 current project path : process.cwd()
+
 current dir path : __dirname
+
 current file path : __filename
 
-http Response 
+### http Response
 https://github.com/koajs/koa/blob/master/docs/api/response.md

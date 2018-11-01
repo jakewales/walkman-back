@@ -45,6 +45,7 @@ import { DBconfig, APIconfig } from './config';
     }).unless({
         path: [/^\/login/, /^\/signup/]
     }));
+    
 
     app.use(router.routes());
 
