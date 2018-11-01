@@ -3,6 +3,7 @@ import { Repository, getManager } from 'typeorm';
 import { ValidationError, validate } from 'class-validator';
 import { fs } from 'mz';
 import * as getRawBody from 'raw-body';
+import * as audioMetadata from 'audio-metadata';
 
 import respCtx from '../../../model/api/response';
 
@@ -148,11 +149,28 @@ export default class AudioController {
     }
 
     public static async getAudio(ctx: Context) {
-        const fileName: string = 'FiveHundredMiles.mp3';
-        const fileStream = fs.createReadStream(`${process.cwd()}/media/${fileName}`);
-        let fileBuffer: Buffer = await getRawBody(fileStream);
-        ctx.set('Content-type', 'arraybuffer');
-        ctx.body = fileBuffer;
+        const audioRepository: Repository<Audio> = getManager().getRepository(Audio);
+        const audioId = ctx.params.id;
+        try {
+            const audio: Audio = await audioRepository.findOne({id: audioId});
+            const fileName: string = audio.url;
+            const fileStream = fs.createReadStream(`${process.cwd()}/media/${fileName}`);
+            let fileBuffer: Buffer = await getRawBody(fileStream);
+            ctx.set('Content-type', 'arraybuffer');
+            ctx.body = fileBuffer;
+        } catch(e) {
+            ctx.status = 404;
+            ctx.body = <respCtx>{
+                statusCode: -1,
+                data: {},
+                errorMessage: ['未找到对应音乐']
+            }
+        }
+    }
+
+
+    public static async getLyrics(ctx: Context) {
+        
     }
 
     public static toArrayBuffer(buffer: Buffer) {
