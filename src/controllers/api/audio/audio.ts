@@ -4,6 +4,7 @@ import { ValidationError, validate } from 'class-validator';
 import { fs } from 'mz';
 import * as getRawBody from 'raw-body';
 import * as audioMetadata from 'audio-metadata';
+import * as parse from 'co-busboy';
 
 import respCtx from '../../../model/api/response';
 
@@ -26,6 +27,9 @@ interface collectionInfo {
 }
 
 export default class AudioController {
+    /*
+        补充audio信息
+    */
     public static async createAudio(ctx: Context) {
         const audioRepository: Repository<Audio> = getManager().getRepository(Audio);
         const audio: Audio = new Audio();
@@ -65,8 +69,22 @@ export default class AudioController {
         }
     }
 
+    /*
+        上传音乐实体
+    */
     public static async uploadAudio(ctx: Context) {
-
+        if (ctx.request.is('multipart/*')) {
+            const parts = parse(ctx);
+            let part: any;
+            while (part = await parts()) {
+                if (part.length) {
+                    console.log(part);
+                } else {
+                    // const wsStream = fs.createWriteStream(`${process.cwd()}/media/`);
+                    // part.pipe(wsStream);
+                }
+            }
+        }
     }
 
     public static async collectionAudio(ctx: Context) {
@@ -170,7 +188,7 @@ export default class AudioController {
 
 
     public static async getLyrics(ctx: Context) {
-        
+
     }
 
     public static toArrayBuffer(buffer: Buffer) {
