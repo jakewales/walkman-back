@@ -3,7 +3,7 @@ import { Repository, getManager } from 'typeorm';
 import { ValidationError, validate } from 'class-validator';
 import { fs } from 'mz';
 import * as getRawBody from 'raw-body';
-import * as audioMetadata from 'audio-metadata';
+import * as MM from 'music-metadata';
 import * as parse from 'co-busboy';
 
 import respCtx from '../../../model/api/response';
@@ -80,8 +80,24 @@ export default class AudioController {
                 if (part.length) {
                     console.log(part);
                 } else {
-                    // const wsStream = fs.createWriteStream(`${process.cwd()}/media/`);
-                    // part.pipe(wsStream);
+                    try {
+                        let meta = await MM.parseStream(part, 'audio');
+                        const wsStream = fs.createWriteStream(`${process.cwd()}/media/${meta.common.title}.${meta.format.dataformat}`);
+                        part.pipe(wsStream);
+                        ctx.status = 200;
+                        ctx.body = <respCtx> {
+                            statusCode: 1,
+                            data: meta,
+                            message: ['上传音频成功']
+                        }
+                    } catch (e) {
+                        ctx.status = 500;
+                        ctx.body = <respCtx> {
+                            statusCode: -1,
+                            data: {},
+                            errorMessage: ['上传失败，请重试']
+                        }
+                    }
                 }
             }
         }

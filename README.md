@@ -37,3 +37,5 @@ https://github.com/koajs/koa/blob/master/docs/api/response.md
 ### get audio metadata
 
 https://www.npmjs.com/package/audio-metadata
+
+https://www.npmjs.com/package/music-metadata
