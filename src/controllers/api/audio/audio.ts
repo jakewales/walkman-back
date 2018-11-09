@@ -3,7 +3,8 @@ import { Repository, getManager } from 'typeorm';
 import { ValidationError, validate } from 'class-validator';
 import { fs } from 'mz';
 import * as getRawBody from 'raw-body';
-import * as audioMetadata from 'audio-metadata';
+import * as MM from 'music-metadata';
+import * as parse from 'co-busboy';
 
 import respCtx from '../../../model/api/response';
 
@@ -26,6 +27,9 @@ interface collectionInfo {
 }
 
 export default class AudioController {
+    /*
+        补充audio信息
+    */
     public static async createAudio(ctx: Context) {
         const audioRepository: Repository<Audio> = getManager().getRepository(Audio);
         const audio: Audio = new Audio();
@@ -65,8 +69,39 @@ export default class AudioController {
         }
     }
 
+    /*
+        上传音乐实体
+    */
     public static async uploadAudio(ctx: Context) {
-
+        if (ctx.request.is('multipart/*')) {
+            const parts = parse(ctx);
+            let part: any;
+            while (part = await parts()) {
+                if (part.length) {
+                    console.log(part);
+                } else {
+                    try {
+                        let meta = await MM.parseStream(part, 'audio');
+                        const wsStream = fs.createWriteStream(`${process.cwd()}/media/${meta.common.title}.${meta.format.dataformat}`);
+                        part.pipe(wsStream);
+                        console.log(meta);
+                        ctx.status = 200;
+                        ctx.body = <respCtx> {
+                            statusCode: 1,
+                            data: meta,
+                            message: ['上传音频成功']
+                        }
+                    } catch (e) {
+                        ctx.status = 500;
+                        ctx.body = <respCtx> {
+                            statusCode: -1,
+                            data: {},
+                            errorMessage: ['上传失败，请重试']
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public static async collectionAudio(ctx: Context) {
@@ -170,7 +205,7 @@ export default class AudioController {
 
 
     public static async getLyrics(ctx: Context) {
-        
+
     }
 
     public static toArrayBuffer(buffer: Buffer) {

@@ -13,6 +13,8 @@
 [Type Orm](https://github.com/typeorm/typeorm)
 [TypeOrm Types](https://github.com/typeorm/typeorm/blob/master/docs/entities.md#column-types)
 
+[co busboy](https://github.com/cojs/busboy)
+
 ### reference
 [node-typescript-koa-rest](https://github.com/javieraviles/node-typescript-koa-rest)
 
@@ -35,3 +37,5 @@ https://github.com/koajs/koa/blob/master/docs/api/response.md
 ### get audio metadata
 
 https://www.npmjs.com/package/audio-metadata
+
+https://www.npmjs.com/package/music-metadata
