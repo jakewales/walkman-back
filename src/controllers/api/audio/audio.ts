@@ -84,6 +84,7 @@ export default class AudioController {
                         let meta = await MM.parseStream(part, 'audio');
                         const wsStream = fs.createWriteStream(`${process.cwd()}/media/${meta.common.title}.${meta.format.dataformat}`);
                         part.pipe(wsStream);
+                        console.log(meta);
                         ctx.status = 200;
                         ctx.body = <respCtx> {
                             statusCode: 1,
