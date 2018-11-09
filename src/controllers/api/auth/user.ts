@@ -25,14 +25,16 @@ export default class UserController {
         });
         if (user && user.length) {
             let tokePlayload = {
-                exp: Date.now() + APIconfig.token.expiration,
+                getTime: Date.now(),
                 userId: user[0].id
             };
             ctx.status = 200;
             ctx.body = <respCtx>{
                 statusCode: 1,
                 data: {},
-                token: jsonwebtoke.sign(tokePlayload, APIconfig.token.tokenSecret)
+                token: jsonwebtoke.sign(tokePlayload, APIconfig.token.tokenSecret, [{
+                    expiresIn: APIconfig.token.expiration
+                }])
             };
         } else {
             ctx.status = 403;
