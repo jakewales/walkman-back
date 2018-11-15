@@ -3,7 +3,7 @@ import { Personnel } from '../../../db/entity/User';
 import { Repository, getManager } from 'typeorm';
 import { validate, ValidationError } from 'class-validator';
 
-import * as jsonwebtoke from 'jsonwebtoken';
+import * as jsonwebtoken from 'jsonwebtoken';
 
 import { APIconfig } from '../../../config';
 
@@ -32,9 +32,9 @@ export default class UserController {
             ctx.body = <respCtx>{
                 statusCode: 1,
                 data: {},
-                token: jsonwebtoke.sign(tokePlayload, APIconfig.token.tokenSecret, [{
+                token: jsonwebtoken.sign(tokePlayload, APIconfig.token.tokenSecret, {
                     expiresIn: APIconfig.token.expiration
-                }])
+                })
             };
         } else {
             ctx.status = 403;

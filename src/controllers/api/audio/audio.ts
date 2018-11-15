@@ -16,7 +16,7 @@ interface audioInfo {
     name: string;
     desc?: string;
     singer?: string;
-    timeLength: number;
+    duration: number;
     album?: string;
     url: string;
 }
@@ -35,10 +35,9 @@ export default class AudioController {
         const audio: Audio = new Audio();
         const requestInfo = <audioInfo>ctx.request.body;
         
+        // TODO 补充audio实例
         audio.name = requestInfo.name;
-        audio.desc = requestInfo.desc ? requestInfo.desc : '';
-        audio.singer = requestInfo.singer ? requestInfo.singer : '';
-        audio.timeLength = requestInfo.timeLength ? requestInfo.timeLength : null;
+        audio.duration = requestInfo.duration ? requestInfo.duration : null;
         audio.album = requestInfo.album ? requestInfo.album : '';
         audio.url = requestInfo.url;
 
@@ -82,9 +81,10 @@ export default class AudioController {
                 } else {
                     try {
                         let meta = await MM.parseStream(part, 'audio');
-                        const wsStream = fs.createWriteStream(`${process.cwd()}/media/${meta.common.title}.${meta.format.dataformat}`);
-                        part.pipe(wsStream);
+                        // const wsStream = fs.createWriteStream(`${process.cwd()}/media/${meta.common.title}.${meta.format.dataformat}`);
+                        // part.pipe(wsStream);
                         console.log(meta);
+                        
                         ctx.status = 200;
                         ctx.body = <respCtx> {
                             statusCode: 1,
