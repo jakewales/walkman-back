@@ -2,6 +2,7 @@ import * as Router from 'koa-router';
 
 import UserController from './controllers/api/auth/user';
 import AudioController from './controllers/api/audio/audio';
+import VideoController from './controllers/api/video/video';
 
 export const router: Router = new Router();
 
@@ -30,3 +31,7 @@ router.get('/audioInfo/:id', AudioController.getAudioInfo);
 router.get('/audio/:id', AudioController.getAudio);
 
 router.get('/lyrics/:id', AudioController.getLyrics)
+
+// Video
+
+router.get('/video', VideoController.getVideo);
