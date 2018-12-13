@@ -43,7 +43,7 @@ import { DBconfig, APIconfig } from './config';
     app.use(jwt({
         secret: APIconfig.token.tokenSecret
     }).unless({
-        path: [/^\/login/, /^\/signup/]
+        path: [/^\/login/, /^\/signup/, /^\/video/]
     }));
     
 
