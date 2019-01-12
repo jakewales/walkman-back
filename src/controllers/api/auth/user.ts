@@ -2,6 +2,7 @@ import { Context } from 'koa';
 import { Personnel } from '../../../db/entity/User';
 import { Repository, getManager } from 'typeorm';
 import { validate, ValidationError } from 'class-validator';
+import { Md5 } from 'ts-md5/dist/md5';
 
 import * as jsonwebtoken from 'jsonwebtoken';
 
@@ -20,7 +21,7 @@ export default class UserController {
         const user = await userRepository.find({
             where: {
                 name: requestInfo.name,
-                password: requestInfo.password
+                password: Md5.hashStr(requestInfo.password)
             }
         });
         if (user && user.length) {
@@ -52,7 +53,7 @@ export default class UserController {
         const requestInfo = <Personnel>ctx.request.body;
         signUser.name = requestInfo.name;
         signUser.email = requestInfo.email;
-        signUser.password = requestInfo.password;
+        signUser.password = <string>Md5.hashAsciiStr(requestInfo.password);
 
         const errors: ValidationError[] = await validate(signUser);
 

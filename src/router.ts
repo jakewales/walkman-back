@@ -34,4 +34,4 @@ router.get('/lyrics/:id', AudioController.getLyrics)
 
 // Video
 
-router.get('/video/:id&:type&:device', VideoController.getVideo);
+router.get('/video/:id', VideoController.getVideo);

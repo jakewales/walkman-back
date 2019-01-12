@@ -40,6 +40,7 @@
     "raw-body": "^2.3.3",
     "reflect-metadata": "^0.1.12",
     "sequelize": "^4.39.0",
+    "ts-md5": "^1.2.4",
     "typeorm": "^0.2.8"
   }
 }
